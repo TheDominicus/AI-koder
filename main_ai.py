@@ -4,6 +4,7 @@ import os
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAI
+from langchain_core.messages import HumanMessage, AIMessage
 
 # load OPEN AI api key
 load_dotenv()
@@ -30,15 +31,27 @@ chain = LLMChain(llm = llm, prompt = prompt)
 st.title("OPEN AI chat model")
 
 # input line
-user_chat = st.chat_input("Your question...")
+user_message = st.chat_input("Your question...")
 
-if user_chat is not None and user_chat != "":
-    st.session_state.chat_history.append(user_chat)
+# showing conversation
+for message in st.session_state.chat_history:
+    # checking the type of message
+    if isinstance(message, HumanMessage):
+        with st.chat_message("User"):
+            st.markdown(message.content)
+    elif isinstance(message, AIMessage):
+        with st.chat_message("AI"):
+            st.markdown(message.content)
+
+if user_message is not None and user_message != "":
+    st.session_state.chat_history.append(HumanMessage(user_message))
 
     with st.chat_message("User"):
         # formated output
-        st.markdown(user_chat)
+        st.markdown(user_message)
 
     with st.chat_message("AI"):
-        ai_answer = chain.run(question = user_chat)
+        ai_answer = chain.run(question = user_message)
         st.markdown(ai_answer)
+
+    st.session_state.chat_history.append(AIMessage(ai_answer))
